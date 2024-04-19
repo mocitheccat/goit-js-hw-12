@@ -3,7 +3,10 @@ import SimpleLightbox from 'simplelightbox';
 import 'izitoast/dist/css/iziToast.min.css';
 import 'simplelightbox/dist/simple-lightbox.min.css';
 
-import getImages from './pixabay-api';
+import apiRequest from './pixabay-api';
+import messages from './messages-to-user';
+
+const api = new apiRequest();
 
 export function createGalleryMarkup(imgs) {
   return imgs
@@ -47,12 +50,7 @@ export function createGalleryMarkup(imgs) {
     )
     .join('');
 }
-
-export function renderGallery(response, containerRef, galleryRef, markup) {
-  console.dir(containerRef);
-  toggleLoader();
-  galleryRef.insertAdjacentHTML('beforeend', markup);
-
+function renderGallery(galleryRef, markup) {
   const lightboxOptions = {
     captions: true,
     captionSelector: '.image',
@@ -61,30 +59,87 @@ export function renderGallery(response, containerRef, galleryRef, markup) {
     captionPosition: 'bottom',
     captionDelay: 250,
   };
-
-  const imgsCard = containerRef.querySelectorAll('.image-card');
-  console.log(imgsCard.length);
-  if (imgsCard.length < response.totalHits) {
-    containerRef.lastElementChild.removeAttribute('hidden');
-  } else {
-    containerRef.lastElementChild.setAttribute('hidden', '');
-  }
   const lightbox = new SimpleLightbox('.img-link', lightboxOptions);
+  galleryRef.insertAdjacentHTML('beforeend', markup);
   lightbox.refresh();
+}
+
+export async function getImgsGallery({ galleryRef, query, paginBtn, loader }) {
+  clearGallery(galleryRef);
+  api.query = query;
+  if (!query) {
+    throw new Error(messages.emptyInput);
+  }
+  changeVisibility(paginBtn, false);
+  try {
+    changeVisibility(loader, true);
+    const imgsHits = await api.getImagesHits();
+    changeVisibility(loader, false);
+    renderGallery(galleryRef, createGalleryMarkup(imgsHits));
+    changeVisibility(paginBtn, true) && api.totalPages > 1;
+  } catch (err) {
+    changeVisibility(paginBtn, false);
+    changeVisibility(loader, false);
+    renderMessages(err.message);
+  }
+}
+
+export async function addImagesToGallery({ galleryRef, paginBtn, loader }) {
+  api.currentPage += 1;
+  changeVisibility(loader, true);
+  changeVisibility(paginBtn, false);
+  try {
+    const imgsHits = await api.getImagesHits();
+    changeVisibility(loader, false);
+    renderGallery(galleryRef, createGalleryMarkup(imgsHits));
+    changeVisibility(paginBtn, true) && api.currentPage < api.totalPages;
+    scroll(document.querySelector('.image-card'));
+    if (api.totalPages === api.currentPage) {
+      throw new Error(messages.endOfResults);
+    }
+  } catch (err) {
+    changeVisibility(paginBtn, false);
+    changeVisibility(loader, false);
+    renderMessages(err.message);
+  }
+}
+
+function scroll(imgCard) {
+  window.scrollBy({
+    top: imgCard.getBoundingClientRect().height * 2,
+    behavior: 'smooth',
+  });
 }
 
 export function clearGallery(galleryRef) {
   galleryRef.innerHTML = '';
 }
 
-export function renderErrorMessages(errorMessage) {
-  iziToast.error({
+export function renderMessages(errorMessage) {
+  let options = {
     message: errorMessage,
     position: 'topRight',
-  });
+  };
+
+  switch (errorMessage) {
+    case messages.endOfResults:
+      options.progressBar = false;
+      options.transitionIn = 'fadeIn';
+      iziToast.info(options);
+      break;
+    case messages.emptyInput:
+      iziToast.warning(options);
+      break;
+    case messages.noResults:
+      iziToast.error(options);
+      break;
+    default:
+      iziToast.warning(options);
+  }
 }
 
-export function toggleLoader() {
-  const loader = document.querySelector('.loader');
-  loader.classList.toggle('disabled');
+export function changeVisibility(HTMLElement, visibility) {
+  visibility === false
+    ? HTMLElement.classList.add('hidden')
+    : HTMLElement.classList.remove('hidden');
 }

@@ -51,31 +51,22 @@ button {
   cursor: pointer;
 }
 
-.js-load-more {
-  margin-left: 0;
-  margin-top: 24px;
-}
-
 .gallery {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  margin: -12px;
+  margin: 0;
   padding: 0;
   list-style: none;
 }
 
 .image-card {
-  width: calc((100% - 36px) / 3);
+  width: calc((100% - 48px) / 3);
   height: 360px;
-  margin: 6px;
+  margin-bottom: 24px;
   border: 1px solid #808080;
 }
-
-/* .image-card:not(:nth-child(3n)) {
-  margin-right: 24px;
-} */
 
 .gallery-image {
   height: 300px;
@@ -125,17 +116,8 @@ button {
   line-height: 24px;
   letter-spacing: 0.04em;
 }
-@media (max-width: 768px) {
-  .gallery {
-    margin: -12px;
-  }
-  .image-card {
-    width: calc((100% - 24px) / 2);
-    margin: 6px;
-  }
-}
 
-@media (max-width: 480px) {
+@media only screen and (max-width: 480px) {
   .container {
     padding: 16px;
   }
@@ -151,6 +133,28 @@ button {
   }
 }
 
+@media only screen and (min-width: 480px) {
+  .image-card:not(:nth-child(3n)) {
+    margin-right: 24px;
+  }
+  .image-card:last-child {
+    margin-right: 0;
+  }
+}
+
+@media only screen and (max-width: 768px) {
+  .image-card {
+    width: calc((100% - 12px) / 2);
+    margin-bottom: 12px;
+  }
+  .image-card:not(:nth-child(2n)) {
+    /* margin-right: 12px; */
+  }
+  .image-card:last-child {
+    margin-right: 0;
+  }
+}
+
 /* LOADER  */
 
 .loader {
@@ -160,7 +164,6 @@ button {
   display: inline-block;
   position: relative;
   border: 3px solid;
-  margin-top: 24px;
   border-color: #808080 #808080 transparent transparent;
   box-sizing: border-box;
   animation: rotation 1s linear infinite;
@@ -210,4 +213,42 @@ button {
 
 .hidden {
   display: none;
+}
+
+/* Gallery styles */
+.gallery {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  justify-content: center;
+}
+
+.gallery-item {
+  width: calc(25% - 16px);  /* Four images per row */
+  margin-bottom: 16px;
+}
+
+.gallery-image {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Media queries for different screen sizes */
+@media (max-width: 1200px) {
+  .gallery-item {
+    width: calc(33.333% - 16px);  /* Three images per row */
+  }
+}
+
+@media (max-width: 768px) {
+  .gallery-item {
+    width: calc(50% - 16px);  /* Two images per row */
+  }
+}
+
+@media (max-width: 480px) {
+  .gallery-item {
+    width: 100%;  /* One image per row */
+  }
 }

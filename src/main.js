@@ -1,58 +1,38 @@
 import {
-  toggleLoader,
-  renderGallery,
-  createGalleryMarkup,
-  renderErrorMessages,
-  clearGallery,
+  getImgsGallery,
+  addImagesToGallery,
+  renderMessages,
 } from './js/render-functions';
-
-import getImages from './js/pixabay-api';
 
 const formRef = document.querySelector('.search-form');
 const input = formRef['input'];
-const mainContainerRef = document.querySelector('.container');
+// const mainContainerRef = document.querySelector('.container');
 const galleryRef = document.querySelector('.gallery');
-const loadMoreBtn = document.querySelector('.js-load-more');
+const paginBtn = document.querySelector('.js-load-more');
+const loader = document.querySelector('.loader');
+
+formRef.addEventListener('submit', handleSearchSubmit);
+
+paginBtn.addEventListener('click', handleLoadMore);
+const options = { galleryRef, query: '', paginBtn, loader };
 
 async function handleSearchSubmit(e) {
   e.preventDefault();
-
-  const query = input.value.trim().toLowerCase();
-
-  if (!query) {
-    renderErrorMessages('Please enter a search query.');
-    return;
+  try {
+    options.query = input.value.trim().toLowerCase();
+    await getImgsGallery(options);
+  } catch (err) {
+    renderMessages(err.message);
+    console.log(err);
   }
-
-  clearGallery(galleryRef);
-  toggleLoader();
-
-  const response = await getImages(query);
-  renderGallery(
-    response,
-    mainContainerRef,
-    galleryRef,
-    createGalleryMarkup(response.hits)
-  );
-
-  loadMoreBtn.addEventListener('click', handleLoadMoreClick.bind(null, query));
 }
 
-async function handleLoadMoreClick(query, e) {
+async function handleLoadMore(e) {
   e.preventDefault();
-  toggleLoader();
-  loadMoreBtn.setAttribute('hidden', '');
-  let page = parseInt(loadMoreBtn.dataset.page) || 2;
-  const response = await getImages(query, page);
-  renderGallery(
-    response,
-    mainContainerRef,
-    galleryRef,
-    createGalleryMarkup(response.hits)
-  );
-  loadMoreBtn.removeAttribute('hidden');
-  page += 1;
-  loadMoreBtn.dataset.page = page;
+  try {
+    await addImagesToGallery(options);
+  } catch (err) {
+    renderMessages(err.message);
+    console.log(err);
+  }
 }
-
-formRef.addEventListener('submit', handleSearchSubmit);
