@@ -6,6 +6,16 @@ import 'simplelightbox/dist/simple-lightbox.min.css';
 import apiRequest from './pixabay-api';
 import messages from './messages-to-user';
 
+const lightboxOptions = {
+  captions: true,
+  captionSelector: '.image',
+  captionType: 'attr',
+  captionsData: 'alt',
+  captionPosition: 'bottom',
+  captionDelay: 250,
+};
+const lightbox = new SimpleLightbox('.img-link', lightboxOptions);
+
 const api = new apiRequest();
 
 export function createGalleryMarkup(imgs) {
@@ -51,15 +61,6 @@ export function createGalleryMarkup(imgs) {
     .join('');
 }
 function renderGallery(galleryRef, markup) {
-  const lightboxOptions = {
-    captions: true,
-    captionSelector: '.image',
-    captionType: 'attr',
-    captionsData: 'alt',
-    captionPosition: 'bottom',
-    captionDelay: 250,
-  };
-  const lightbox = new SimpleLightbox('.img-link', lightboxOptions);
   galleryRef.insertAdjacentHTML('beforeend', markup);
   lightbox.refresh();
 }
